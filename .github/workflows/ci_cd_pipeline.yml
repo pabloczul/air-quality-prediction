@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest api/test_api.py
+
+      - name: Run data acquisition
+        run: |
+          python src/data_acquisition.py --mode recent
+
+      - name: Build Docker image
+        run: |
+          docker build -t air-quality-api .
+
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8000:8000 air-quality-api
+
+      - name: Deploy to production (optional)
+        run: |
+          echo "Desplegar a producción"
